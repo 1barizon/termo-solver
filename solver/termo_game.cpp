@@ -43,7 +43,6 @@ int main() {
   lista_palavras = carregar_palavras("./word_list.txt");
   std::string palavra;
   palavra = sortear(lista_palavras);
-  std::cout << palavra << std::endl;
   bool solved = false;
   std::string input;
   while (solved == false) {

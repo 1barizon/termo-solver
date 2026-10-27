@@ -71,14 +71,11 @@ int converter_base3(std::array<int, 5> state) {
   return padrao_index;
 }
 
-int main() {
-  // carregar lista de palavras
-  std::vector<std::string> lista_palavras;
-  lista_palavras = carregar_palavras("./word_list.txt");
-  std::string palavra = sortear(lista_palavras); // sortear palavra
+std::vector<std::pair<std::string, int>>
+calc_valor_esperado(std::vector<std::string> lista_palavras) {
   int contador_padrao[243] = {0}; // vetor para contar ocorrencia de combinacoes
-  std::vector<std::pair<std::string, int>> palavra_valor_esperado;
   int index = 0;
+  std::vector<std::pair<std::string, int>> palavra_valor_esperado;
   for (const std::string &guess : lista_palavras) {
     std::cout << "avaliando: " << index << "/" << lista_palavras.size()
               << std::endl;
@@ -116,10 +113,45 @@ int main() {
       palavra_valor_esperado.pop_back();
     }
   }
+  return palavra_valor_esperado;
+}
 
-  std::cout << "Top 10 palavras para comecar" << std::endl;
-  for (const auto &[word, value] : palavra_valor_esperado) {
-    std::cout << word << " | E: " << value << "\n";
+std::vector<std::string>
+filtrar_palavras(const std::vector<std::string> &lista_atual, std::string input,
+                 std::array<int, 5> input_state) {
+  std::vector<std::string> nova_lista;
+  for (const std::string &candidato : lista_atual) {
+    std::array<int, 5> estado_simulado = word_state(candidato, input);
+    if (estado_simulado == input_state) {
+      nova_lista.push_back(candidato);
+    }
+  }
+  return nova_lista;
+}
+
+int main() {
+  // carregar lista de palavras
+  std::vector<std::string> lista_palavras;
+  lista_palavras = carregar_palavras("./word_list.txt");
+  std::string palavra = sortear(lista_palavras); // sortear palavra
+  bool ganho = false;
+  std::string palpite;
+  while (ganho == false) {
+    std::vector<std::pair<std::string, int>> palavra_valor_esperado =
+        calc_valor_esperado(lista_palavras);
+    std::cout << "Top 10 palavras para comecar" << std::endl;
+    for (const auto &[word, value] : palavra_valor_esperado) {
+      std::cout << word << " | E: " << value << "\n";
+    }
+    std::cout << "insira seu palpite" << std::endl;
+    std::cin >> palpite;
+    std::array<int, 5> state = word_state(palavra, palpite);
+    if (palpite == palavra) {
+      ganho = true;
+      break;
+    } else {
+      lista_palavras = filtrar_palavras(lista_palavras, palpite, state);
+    }
   }
 
   return 0;

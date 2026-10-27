@@ -132,8 +132,8 @@ static void worker_main() {
     int gen = -1;
     {
       std::unique_lock<std::mutex> lk(g_worker.mtx);
-      g_worker.cv.wait(
-          lk, [] { return g_worker.stop || g_worker.has_request; });
+      g_worker.cv.wait(lk,
+                       [] { return g_worker.stop || g_worker.has_request; });
       if (g_worker.stop)
         return;
       list = std::move(g_worker.request);
@@ -146,8 +146,7 @@ static void worker_main() {
     g_computing.store(true, std::memory_order_relaxed);
 
     // funcao original, sem nenhuma alteracao
-    std::vector<std::pair<std::string, int>> res =
-        calc_valor_esperado(list);
+    std::vector<std::pair<std::string, int>> res = calc_valor_esperado(list);
 
     {
       std::lock_guard<std::mutex> lk(g_worker.mtx);
@@ -315,8 +314,8 @@ static std::vector<std::string> render_panel(const Panel &p, int h) {
 
   std::string t = " " + p.title + " ";
   size_t tw = vis_len(t);
-  std::string top = std::string(ui::BORDER) + "\u250c" + ui::TITLE + t +
-                    ui::BORDER;
+  std::string top =
+      std::string(ui::BORDER) + "\u250c" + ui::TITLE + t + ui::BORDER;
   if (tw < static_cast<size_t>(cw))
     top += hline(cw - static_cast<int>(tw));
   top += "\u2510" + std::string(ui::RESET);
@@ -329,8 +328,8 @@ static std::vector<std::string> render_panel(const Panel &p, int h) {
                    ui::BORDER + "\u2502" + ui::RESET);
   }
 
-  std::string bottom = std::string(ui::BORDER) + "\u2514" + hline(cw) +
-                       "\u2518" + ui::RESET;
+  std::string bottom =
+      std::string(ui::BORDER) + "\u2514" + hline(cw) + "\u2518" + ui::RESET;
   rows.push_back(bottom);
   return rows;
 }
@@ -410,8 +409,8 @@ static std::string board_row(int r, int cw) {
       row += make_tile(color, letter);
     } else if (is_input_row && g_official && g_feedback_mode &&
                g_input.size() == 5) {
-      char letter = static_cast<char>(
-          toupper(static_cast<unsigned char>(g_input[i])));
+      char letter =
+          static_cast<char>(toupper(static_cast<unsigned char>(g_input[i])));
       const char *color;
       if (i < g_feedback_pos) {
         int st = g_feedback_state[i];
@@ -426,8 +425,8 @@ static std::string board_row(int r, int cw) {
       row += make_tile(color, letter);
     } else if (is_input_row) {
       if (i < static_cast<int>(g_input.size())) {
-        char letter = static_cast<char>(
-            toupper(static_cast<unsigned char>(g_input[i])));
+        char letter =
+            static_cast<char>(toupper(static_cast<unsigned char>(g_input[i])));
         row += make_tile(ui::TILE_TYPING, letter);
       } else if (i == static_cast<int>(g_input.size())) {
         row += make_tile(ui::TILE_CURSOR, '_');
@@ -441,8 +440,8 @@ static std::string board_row(int r, int cw) {
   return center_visible(row, cw);
 }
 
-static std::string info_line(const std::string &label,
-                             const std::string &value, int cw) {
+static std::string info_line(const std::string &label, const std::string &value,
+                             int cw) {
   std::string left = " " + label;
   size_t l = vis_len(left);
   size_t v = vis_len(value);
@@ -513,8 +512,8 @@ static std::string render_frame(const Snap &snap) {
   } else if (g_official) {
     if (g_phase == Phase::Won) {
       msg1 = std::string(ui::GREEN) + "ACERTOU!" + ui::RESET;
-      msg2 = std::string(ui::DIM) + "palavra: " +
-             to_upper(g_history.back().word) + ui::RESET;
+      msg2 = std::string(ui::DIM) +
+             "palavra: " + to_upper(g_history.back().word) + ui::RESET;
     } else if (g_phase == Phase::Lost) {
       msg1 = std::string(ui::RED) + "FIM DE JOGO" + ui::RESET;
       msg2 = std::string(ui::DIM) + "6 tentativas usadas" + ui::RESET;
@@ -588,13 +587,12 @@ static std::string render_frame(const Snap &snap) {
 
     int barw = std::max(8, right_cw - 4);
     int filled = barw * pct / 100;
-    std::string bar = " [" + std::string(ui::CYAN) +
-                      std::string(filled, '#') + ui::DIM +
-                      std::string(barw - filled, '-') + ui::RESET + "]";
+    std::string bar = " [" + std::string(ui::CYAN) + std::string(filled, '#') +
+                      ui::DIM + std::string(barw - filled, '-') + ui::RESET +
+                      "]";
     right_body.push_back(bar);
     char buf[80];
-    snprintf(buf, sizeof(buf), " %3d%%  %ld/%zu", pct, snap.done,
-             snap.total);
+    snprintf(buf, sizeof(buf), " %3d%%  %ld/%zu", pct, snap.done, snap.total);
     right_body.push_back(buf);
     right_body.push_back("");
     right_body.push_back(std::string(ui::DIM) + " a primeira análise da" +
@@ -626,17 +624,16 @@ static std::string render_frame(const Snap &snap) {
 
     std::vector<std::string> ib;
     ib.push_back("");
-    ib.push_back(info_line("jogadas", std::to_string(g_history.size()) + "/6",
-                           info_cw));
+    ib.push_back(
+        info_line("jogadas", std::to_string(g_history.size()) + "/6", info_cw));
     ib.push_back(
         info_line("candidatas", std::to_string(g_candidates.size()), info_cw));
     if (g_official) {
       ib.push_back(info_line("modo", "oficial", info_cw));
     } else {
-      ib.push_back(
-          info_line("segredo", g_phase == Phase::Playing ? "*****"
-                                                         : to_upper(g_secret),
-                    info_cw));
+      ib.push_back(info_line(
+          "segredo", g_phase == Phase::Playing ? "*****" : to_upper(g_secret),
+          info_cw));
     }
     ib.push_back(info_line("cálculo", calc_state, info_cw));
     ib.push_back("");
@@ -977,8 +974,7 @@ int main(int argc, char **argv) {
 
   bool running = true;
   while (running) {
-    if (!g_hint.empty() &&
-        std::chrono::steady_clock::now() > g_hint_until)
+    if (!g_hint.empty() && std::chrono::steady_clock::now() > g_hint_until)
       g_hint.clear();
 
     Snap snap = take_snapshot();

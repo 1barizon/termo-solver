@@ -42,9 +42,8 @@ std::string sortear(std::vector<std::string> lista_palavras) {
 std::array<int, 5> word_state(std::string palavra, std::string input) {
 
   std::array<int, 5> state = {0, 0, 0, 0, 0};
-
-  for (size_t i = 0; i < input.length(); i++) {
-    for (size_t j = 0; j < palavra.length(); j++) {
+  for (size_t i = 0; i < 5; i++) {
+    for (size_t j = 0; j < 5; j++) {
       if (input[i] == palavra[j]) {
         if (i == j) {
           state[i] = 2; // posicao correta
@@ -61,7 +60,7 @@ std::array<int, 5> word_state(std::string palavra, std::string input) {
 // retorna qual o index de uma combinacao em um vetor de 243 possibilidades
 int converter_base3(std::array<int, 5> state) {
   int padrao_index = 0;
-  int multiplicador = 83;
+  int multiplicador = 81;
   for (int i = 0; i < 5; i++) {
     padrao_index += state[i] * multiplicador;
     multiplicador /= 3;
@@ -82,7 +81,14 @@ int main() {
     std::array<int, 5> estado;
     estado = word_state(s, input);
     int indice = converter_base3(estado);
-    contador_padrao[indice]++;
+    if (indice >= 0 && indice < 243) {
+      contador_padrao[indice]++;
+    } else {
+      std::cerr << "Aviso: Índice inválido gerado: " << indice << std::endl;
+      for (int state : estado) {
+        std::cout << state << std::endl;
+      }
+    }
   }
 
   std::array<int, 5> state_guess = word_state(palavra, input);

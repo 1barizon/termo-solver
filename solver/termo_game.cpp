@@ -80,7 +80,8 @@ calc_valor_esperado(std::vector<std::string> lista_palavras) {
     std::cout << "avaliando: " << index << "/" << lista_palavras.size()
               << std::endl;
     memset(contador_padrao, 0,
-           243); // zerando o vetor de contador para a nova palavra
+           243 *
+               sizeof(int)); // zerando o vetor de contador para a nova palavra
     for (const std::string &key : lista_palavras) {
       std::array<int, 5> estado;
       estado = word_state(key, guess);

@@ -3,7 +3,7 @@ import unicodedata
 
 words = []
 
-path = "../pt-br/listas/"
+path = "../pt-br/"
 
 
 def remover_acento(texto):

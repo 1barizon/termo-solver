@@ -1,3 +1,5 @@
+#include <array>
+#include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <fstream>
@@ -37,48 +39,59 @@ std::string sortear(std::vector<std::string> lista_palavras) {
   return lista_palavras[randomNum];
 }
 
+std::array<int, 5> word_state(std::string palavra, std::string input) {
+
+  std::array<int, 5> state = {0, 0, 0, 0, 0};
+
+  for (size_t i = 0; i < input.length(); i++) {
+    for (size_t j = 0; j < palavra.length(); j++) {
+      if (input[i] == palavra[j]) {
+        if (i == j) {
+          state[i] = 2; // posicao correta
+        }
+        if (i != j && state[i] != 2) {
+          state[i] = 1;
+        }
+      }
+    }
+  }
+  return state;
+}
+
+// retorna qual o index de uma combinacao em um vetor de 243 possibilidades
+int converter_base3(std::array<int, 5> state) {
+  int padrao_index = 0;
+  int multiplicador = 83;
+  for (int i = 0; i < 5; i++) {
+    padrao_index += state[i] * multiplicador;
+    multiplicador /= 3;
+  }
+  return padrao_index;
+}
+
 int main() {
   // carregar lista de palavras
   std::vector<std::string> lista_palavras;
   lista_palavras = carregar_palavras("./word_list.txt");
-  std::string palavra;
-  palavra = sortear(lista_palavras);
-  bool solved = false;
-  std::string input;
-  while (solved == false) {
-    std::cin >> input;
-    int verificacao = 0;
-    for (size_t i = 0; i < input.length(); i++) {
-      int state = 0;
-      for (size_t j = 0; j < palavra.length(); j++) {
-        if (input[i] == palavra[j]) {
-          if (i == j) {
-            state = 2; // green
-          }
-          if (i != j && state != 2) {
-            state = 1;
-          }
-        }
-      }
-      switch (state) {
+  std::string palavra = sortear(lista_palavras);
 
-      case 0:
-        std::cout << input[i];
-        break;
-      case 1:
-        std::cout << YELLOW << input[i] << RESET;
-        break;
-      case 2:
-        std::cout << GREEN << input[i] << RESET;
-        verificacao += 1;
-        break;
-      }
-    }
-    std::cout << "" << std::endl;
-    if (verificacao == 5) {
-      std::cout << "ganhou" << std::endl;
-      break;
-    }
+  int contador_padrao[243] = {0};
+  std::string input = "coisa";
+
+  for (std::string s : lista_palavras) {
+    std::array<int, 5> estado;
+    estado = word_state(s, input);
+    int indice = converter_base3(estado);
+    contador_padrao[indice]++;
   }
+
+  std::array<int, 5> state_guess = word_state(palavra, input);
+  int index_guess = converter_base3(state_guess);
+  float count_padrao = contador_padrao[index_guess];
+  float prob = count_padrao / lista_palavras.size();
+
+  std::cout << "probabilidade desse padrao :" << prob << std::endl;
+  std::cout << "informacao desse padrao :" << -(std::log2(prob)) << std::endl;
+
   return 0;
 }

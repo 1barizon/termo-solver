@@ -1,10 +1,13 @@
+#include <algorithm>
 #include <array>
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
+#include <cstring>
 #include <fstream>
 #include <iostream>
 #include <string>
+#include <utility>
 #include <vector>
 
 #define RESET "\033[0m"
@@ -72,32 +75,52 @@ int main() {
   // carregar lista de palavras
   std::vector<std::string> lista_palavras;
   lista_palavras = carregar_palavras("./word_list.txt");
-  std::string palavra = sortear(lista_palavras);
-
-  int contador_padrao[243] = {0};
-  std::string input = "coisa";
-
-  for (std::string s : lista_palavras) {
-    std::array<int, 5> estado;
-    estado = word_state(s, input);
-    int indice = converter_base3(estado);
-    if (indice >= 0 && indice < 243) {
-      contador_padrao[indice]++;
-    } else {
-      std::cerr << "Aviso: Índice inválido gerado: " << indice << std::endl;
-      for (int state : estado) {
-        std::cout << state << std::endl;
+  std::string palavra = sortear(lista_palavras); // sortear palavra
+  int contador_padrao[243] = {0}; // vetor para contar ocorrencia de combinacoes
+  std::vector<std::pair<std::string, int>> palavra_valor_esperado;
+  int index = 0;
+  for (const std::string &guess : lista_palavras) {
+    std::cout << "avaliando: " << index << "/" << lista_palavras.size()
+              << std::endl;
+    memset(contador_padrao, 0,
+           243); // zerando o vetor de contador para a nova palavra
+    for (const std::string &key : lista_palavras) {
+      std::array<int, 5> estado;
+      estado = word_state(key, guess);
+      int indice = converter_base3(estado);
+      if (indice >= 0 && indice < 243) {
+        contador_padrao[indice]++;
+      } else {
+        std::cerr << "Aviso: Índice inválido gerado: " << indice << std::endl;
       }
+    }
+    index++; // calcular o valor esperando
+    float valor_esperado = 0.0;
+    for (double ct : contador_padrao) {
+      if (ct > 0) {
+        double p = ct / lista_palavras.size();
+        valor_esperado -= p * std::log2(p);
+      }
+    }
+
+    // ordenar ao inserir
+    auto it = std::lower_bound(
+        palavra_valor_esperado.begin(), palavra_valor_esperado.end(),
+        valor_esperado, [](const std::pair<std::string, int> &a, int b) {
+          return a.second > b; // '>' garante a ordem decrescente pelo número
+        });
+
+    //  Agora o insert vai funcionar perfeitamente sem erros!
+    palavra_valor_esperado.insert(it, {guess, valor_esperado});
+    if (palavra_valor_esperado.size() > 10) {
+      palavra_valor_esperado.pop_back();
     }
   }
 
-  std::array<int, 5> state_guess = word_state(palavra, input);
-  int index_guess = converter_base3(state_guess);
-  float count_padrao = contador_padrao[index_guess];
-  float prob = count_padrao / lista_palavras.size();
-
-  std::cout << "probabilidade desse padrao :" << prob << std::endl;
-  std::cout << "informacao desse padrao :" << -(std::log2(prob)) << std::endl;
+  std::cout << "Top 10 palavras para comecar" << std::endl;
+  for (const auto &[word, value] : palavra_valor_esperado) {
+    std::cout << word << " | E: " << value << "\n";
+  }
 
   return 0;
 }

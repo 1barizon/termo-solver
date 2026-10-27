@@ -1,0 +1,11 @@
+#!/bin/sh
+# Abre o Termo oficial no navegador e inicia o solver em modo oficial.
+set -eu
+
+DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+
+if [ ! -x "$DIR/termo_tui" ] || [ "$DIR/termo_tui.cpp" -nt "$DIR/termo_tui" ] || [ "$DIR/termo_game.cpp" -nt "$DIR/termo_tui" ]; then
+  (cd "$DIR" && g++ -O2 -std=c++17 -pthread termo_tui.cpp -o termo_tui)
+fi
+
+exec "$DIR/termo_tui" --oficial --abrir "$@"
